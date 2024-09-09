@@ -14,10 +14,11 @@ namespace Assignment7.WebAPI.Controllers
         private readonly IWorkflowRepository _workflowRepository;
 
         public WorkflowController(IWorkflowRepository workflowRepository)
-            {
-                _workflowRepository = workflowRepository;
-            }
+        {
+            _workflowRepository = workflowRepository;
+        }
 
+        [Authorize(Roles = "Library User, Librarian, Library Manager")]
         [HttpPost]
         public async Task<ActionResult> SubmitBookRequestAsync(BookRequest requestDto, string userId)
         {

@@ -41,14 +41,14 @@ namespace Assignment7.WebAPI.Controllers
             var bookDto = book.ToBookDto();
             return Ok(bookDto);
         }
-        [Authorize(Roles = "Librarian")]
+        [Authorize(Roles = "Librarian, Library Manager")]
         [HttpPost]
         public async Task<ActionResult<Book>> AddBook(Book book)
         {
             var createdBook = await _bookRepository.AddBook(book);
             return Ok(createdBook);
         }
-        [Authorize(Roles = "Librarian")]
+        [Authorize(Roles = "Librarian, Library Manager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBook(int id, Book book)
         {
@@ -58,7 +58,7 @@ namespace Assignment7.WebAPI.Controllers
             var bookDto = createdBook.ToBookDto();
             return Ok(bookDto);
         }
-        [Authorize(Roles = "Librarian")]
+        [Authorize(Roles = "Librarian, Library Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {

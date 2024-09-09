@@ -4,6 +4,7 @@ using Assignment7.Domain.Entities;
 using Assignment7.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Assignment7.Application.Mappers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Assignment7.WebAPI.Controllers
 {
@@ -27,6 +28,7 @@ namespace Assignment7.WebAPI.Controllers
             var userDto = user.Select(u => u.ToUserDto()).ToList();
             return Ok(userDto);
         }
+        [Authorize(Roles = "Library User")]
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUserById(int id)
         {
@@ -70,6 +72,7 @@ namespace Assignment7.WebAPI.Controllers
             }
             return Ok("User telah dihapus");
         }
+        [Authorize(Roles = "Library User")]
         [HttpPut("note/{id}")]
         public async Task<IActionResult> AttachNotes(int id, [FromBody] string notes)
         {

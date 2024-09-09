@@ -1,5 +1,6 @@
 ﻿using Assignment7.Application.Dtos.Account;
 using Assignment7.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Assignment7.WebAPI.Controllers
@@ -14,7 +15,7 @@ namespace Assignment7.WebAPI.Controllers
         {
             _authService = authService;
         }
-
+        [Authorize(Roles = "Librarian, Library Manager")]
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterUser model)
         {
@@ -45,24 +46,28 @@ namespace Assignment7.WebAPI.Controllers
 
             return Ok(result);
         }
+        [Authorize(Roles = "Library Manager")]
         [HttpPost("set-role")]
         public async Task<IActionResult> CreateRoleAsync(string rolename)
         {
             var result = await _authService.CreateRoleAsync(rolename);
             return Ok(result);
         }
+        [Authorize(Roles = "Library Manager")]
         [HttpPost("assign-role")]
         public async Task<IActionResult> AssignToRoleAsync(string userName, [FromBody] string rolename)
         {
             var result = await _authService.AssignToRoleAsync(userName, rolename);
             return Ok(result);
         }
+        [Authorize(Roles = "Library Manager")]
         [HttpPut]
         public async Task<IActionResult> UpdateRoleAsync(string userName, [FromBody] string rolename)
         {
             var result = await _authService.UpdateToRoleAsync(userName, rolename);
             return Ok(result);
         }
+        [Authorize(Roles = "Library Manager")]
         [HttpDelete]
         public async Task<IActionResult> DeleteRoleAsync(string userName, [FromBody] string rolename)
         {
