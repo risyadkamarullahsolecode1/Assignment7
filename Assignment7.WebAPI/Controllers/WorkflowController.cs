@@ -2,6 +2,8 @@
 using Assignment7.Infrastructure.Data.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Assignment7.Application.Dtos.Account;
+using Assignment7.Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Assignment7.WebAPI.Controllers
 {
@@ -9,9 +11,9 @@ namespace Assignment7.WebAPI.Controllers
     [ApiController]
     public class WorkflowController : ControllerBase
     {
-        private readonly WorkflowRepository _workflowRepository;
+        private readonly IWorkflowRepository _workflowRepository;
 
-        public WorkflowController(WorkflowRepository workflowRepository)
+        public WorkflowController(IWorkflowRepository workflowRepository)
             {
                 _workflowRepository = workflowRepository;
             }
@@ -19,12 +21,13 @@ namespace Assignment7.WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult> SubmitBookRequestAsync(BookRequest requestDto, string userId)
         {
-            var result = _workflowRepository.SubmitBookRequestAsync(requestDto, userId);
-            return Ok(result);
+            await _workflowRepository.SubmitBookRequestAsync(requestDto, userId);
+            return Ok("Book Request succecfully submitted");
         }
 
+        [Authorize (Roles = "Librarian, Library Manager")]
         [HttpPut]
-        public async Task<IActionResult> ApproveBookRequestAsync(ApprovalBookRequest request)
+        public async Task<IActionResult> ApproveBookRequestAsync([FromBody]ApprovalBookRequest request)
         {
             try
             {

@@ -61,6 +61,8 @@ namespace Assignment7.Infrastructure
 
             services.AddScoped<IAuthService, AuthService>();
 
+            services.AddScoped<IWorkflowRepository, WorkflowRepository>();
+
             services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
             services.AddTransient<IEmailService, EmailService>();
             return services;

@@ -17,6 +17,7 @@ namespace Assignment7.Application.Dtos.Account
         public DateTime? LibraryCardExpDate { get; set; }
         public string? Position { get; set; }
         public string? Previlege { get; set; }
+        public bool? UnpaidPenalty { get; set; }
         public string? AppUserId { get; set; }
     }
 }

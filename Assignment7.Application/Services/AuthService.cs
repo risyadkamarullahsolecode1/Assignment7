@@ -61,6 +61,7 @@ namespace Assignment7.Application.Services
                 LibraryCardExpDate = model.LibraryCardExpDate,
                 Position = model.Position,
                 Previlege = model.Previlege,
+                UnpaidPenalty = model.UnpaidPenalty.Value,
                 AppUserId = userId
             };
             await _userRepository.AddUser(users);

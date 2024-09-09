@@ -70,6 +70,7 @@ namespace Assignment7.Infrastructure.Data.Repository
             {
                 WorkflowId = 1, // ID for Book Request Workflow
                 RequesterId = userId,
+                RequestType = "Book Request",
                 Status = "Pending Librarian Approval",
                 CurrentStepId = 2, // Step ID for Librarian Approval
                 RequestDate = DateTime.UtcNow
@@ -82,6 +83,8 @@ namespace Assignment7.Infrastructure.Data.Repository
             var bookRequest = new BookRequest
             {
                 BookTitle = requestDto.BookTitle,
+                RequestName = requestDto.RequestName,
+                Description = requestDto.Description,
                 Author = requestDto.Author,
                 Publisher = requestDto.Publisher,
                 ProcessId = process.ProcessId,
@@ -108,8 +111,8 @@ namespace Assignment7.Infrastructure.Data.Repository
 
             if (user != null )
             {
-                var emailSubject = "Leave Request Submitted";
-                var emailBody = $"Dear {user.UserName},<br>Your leave request for {bookRequest.BookTitle} to {bookRequest.Author} has been submitted and is awaiting approval.";
+                var emailSubject = "Book Request Submitted";
+                var emailBody = $"Dear {user.UserName},<br>Your book request for {bookRequest.BookTitle} by {bookRequest.Author} has been submitted and is awaiting approval.";
 
                 // Sending email using the email from AspNetUsers
                 await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody);
@@ -123,8 +126,8 @@ namespace Assignment7.Infrastructure.Data.Repository
                   .Select(c => c.Value)
             .ToList();
 
-            var bookRequest = await _context.BookRequests.FirstOrDefaultAsync(lr => lr.ProcessId ==processId);
-            if (bookRequest != null)
+            var bookRequest = await _context.BookRequests.FirstOrDefaultAsync(br => br.ProcessId ==processId);
+            if (bookRequest == null)
             {
                 throw new Exception("Book request not found.");
             }
@@ -132,7 +135,7 @@ namespace Assignment7.Infrastructure.Data.Repository
             var currentAction = await _context.WorkflowActions
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.ProcessId == processId && a.ActorId == actorId && a.StepId == 1);
-            if (currentAction != null)
+            if (currentAction == null)
             {
                 throw new Exception("Current action not found.");
             }
@@ -145,27 +148,27 @@ namespace Assignment7.Infrastructure.Data.Repository
 
 
             // Supervisor approval flow
-            if (userRoles.Contains("Supervisor"))
+            if (userRoles.Contains("Librarian"))
             {
                 if (isApproved)
                 {
                     // Move to HR approval if Supervisor approves
                     nextStepId = 3; // StepId for HR Manager approval
-                    nextProcessStatus = "Pending HR Approval";
-                    bookRequest.Description = "Pending HR Approval";
+                    nextProcessStatus = "Pending Library Manager Approval";
+                    bookRequest.Description = "Pending Library Manager Approval";
                     // Email notification to HR Manager
-                    emailSubject = "Leave Request Pending HR Approval";
-                    emailBody = $"The leave request for {bookRequest.RequestName} is pending HR approval.";
+                    emailSubject = "Leave Request Pending Library Manager Approval";
+                    emailBody = $"The book request for {bookRequest.RequestName} is pending Library Manager approval.";
                 }
                 else
                 {
                     // If Supervisor rejects, end the process
                     nextStepId = 5; // Rejected
                     nextProcessStatus = "Rejected";
-                    bookRequest.Description = "Rejected by Supervisor";
+                    bookRequest.Description = "Rejected by Librarian";
                     // Email notification to Employee
-                    emailSubject = "Leave Request Rejected";
-                    emailBody = $"Your leave request '{bookRequest.RequestName}' has been rejected by your supervisor.";
+                    emailSubject = "Book Request Rejected";
+                    emailBody = $"Your book request '{bookRequest.RequestName}' has been rejected by the librarian.";
                 }
 
                 // Create new action for HR or rejection
@@ -173,8 +176,8 @@ namespace Assignment7.Infrastructure.Data.Repository
                 {
                     ProcessId = processId,
                     StepId = isApproved ? nextStepId : 4, // Next step for HR if approved
-                    ActorId = isApproved ? "ba2ed92d-d3f0-4eb9-afec-b7706ab4f87a" : actorId,
-                    Action = isApproved ? "Pending HR Approval" : "Rejected by Supervisor",
+                    ActorId = isApproved ? "39a4340c-f28f-4b8f-80a5-af57e728ac7b" : actorId,
+                    Action = isApproved ? "Pending Library Manager Approval" : "Rejected by Librarian",
                     ActionDate = DateTime.UtcNow,
                     Comment = comment
                 };
@@ -182,41 +185,41 @@ namespace Assignment7.Infrastructure.Data.Repository
                 _context.WorkflowActions.Update(newAction);
             }
             // HR Manager approval flow
-            else if (userRoles.Contains("HR Manager"))
+            else if (userRoles.Contains("Library Manager"))
             {
                 if (isApproved)
                 {
                     // Approve the leave request
                     nextStepId = 4; // StepId for final approval
                     nextProcessStatus = "Approved";
-                    bookRequest.Description = "Approved by HR";
+                    bookRequest.Description = "Approved by Library Manager";
                     // Email notification to Employee
-                    emailSubject = "Leave Request Approved";
-                    emailBody = $"Your leave request '{bookRequest.RequestName}' has been approved by HR.";
+                    emailSubject = "Book Request Approved";
+                    emailBody = $"Your book request '{bookRequest.RequestName}' has been approved by Library Manager.";
                 }
                 else
                 {
                     // Reject the leave request
                     nextStepId = 5; // Rejected
                     nextProcessStatus = "Rejected";
-                    bookRequest.Description = "Rejected by HR";
+                    bookRequest.Description = "Rejected by Library Manager";
                     // Email notification to Employee
-                    emailSubject = "Leave Request Rejected";
-                    emailBody = $"Your leave request '{bookRequest.RequestName}' has been rejected by HR.";
+                    emailSubject = "Book Request Rejected";
+                    emailBody = $"Your book request '{bookRequest.RequestName}' has been rejected by Library Manager.";
                 }
 
                 // Update the HR action in WorkflowActions
-                var hrAction = new WorkflowAction
+                var mgrAction = new WorkflowAction
                 {
                     ProcessId = processId,
                     StepId = nextStepId,
                     ActorId = actorId,
-                    Action = isApproved ? "Approved by HR" : "Rejected by HR",
+                    Action = isApproved ? "Approved by Library Manager" : "Rejected by Library Manager",
                     ActionDate = DateTime.UtcNow,
                     Comment = comment
                 };
 
-                _context.WorkflowActions.Update(hrAction);
+                _context.WorkflowActions.Update(mgrAction);
             }
             else
             {
