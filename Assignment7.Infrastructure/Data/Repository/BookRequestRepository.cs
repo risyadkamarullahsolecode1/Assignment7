@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -49,5 +50,32 @@ namespace Assignment7.Infrastructure.Data.Repository
             await _context.SaveChangesAsync();
             return bookRequest;
         }
+
+        public async Task<IEnumerable<BookRequest>> GetAllByUserAsync(Expression<Func<BookRequest, bool>> expression)
+        {
+            return await _context.BookRequests
+                .Include(r => r.Process)
+                .ThenInclude(p => p.CurrentStep)
+                .ThenInclude(wfs => wfs.RequiredRole)
+                .Include(r => r.Process)
+                .ThenInclude(p => p.Requester)
+                .Include(r => r.Process)
+                .ThenInclude(p => p.WorkflowActions)
+                .Where(expression) // Filter
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<BookRequest>> GetAllToStatusAsync(string userRole)
+        {
+            return await _context.BookRequests
+                .Include(r => r.Process)
+                    .ThenInclude(p => p.CurrentStep)
+                    .ThenInclude(wfs => wfs.RequiredRole)
+                .Include(r => r.Process)
+                    .ThenInclude(p => p.WorkflowActions)
+                .Where(r => r.Process.CurrentStep.RequiredRole.Name == userRole)
+                .ToListAsync();
+        }
+
     }
 }

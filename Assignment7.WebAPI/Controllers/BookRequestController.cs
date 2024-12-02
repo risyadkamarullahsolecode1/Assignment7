@@ -30,5 +30,19 @@ namespace Assignment7.WebAPI.Controllers
             var res = await _bookRequestService.ReviewJobPostRequest(reviewRequestDto);
             return Ok(res);
         }
+        [Authorize(Roles = "Library User,Librarian,Library Manager")]
+        [HttpGet("status")]
+        public async Task<IActionResult> GetBookRequestStatus()
+        {
+            try
+            {
+                var statuses = await _bookRequestService.GetAllBookRequestStatuses();
+                return Ok(statuses);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
     }
 }

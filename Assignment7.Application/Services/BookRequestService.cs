@@ -250,5 +250,57 @@ namespace Assignment7.Application.Services
                 Message = "Request Reviewed Sucessfuly"
             };
         }
+
+        public async Task<IEnumerable<object>> GetAllBookRequestStatuses()
+        {
+            // Get user and roles from HttpContextAccessor
+            var userName = _httpContextAccessor.HttpContext?.User.Identity?.Name;
+            if (string.IsNullOrEmpty(userName))
+            {
+                throw new UnauthorizedAccessException("User not authenticated.");
+            }
+
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found.");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var applications = new List<BookRequest>();
+
+            foreach (var role in userRoles)
+            {
+                if (role == "Library User")
+                {
+                    // Fetch book requests created by the user
+                    var userApplications = await _bookRequestRepository.GetAllByUserAsync(r => r.AppUserId == user.Id);
+                    applications.AddRange(userApplications);
+                }
+                else if (role == "Librarian" || role == "LibraryManager")
+                {
+                    // Fetch book requests based on the librarian/manager's role in the workflow
+                    var roleApplications = await _bookRequestRepository.GetAllToStatusAsync(role);
+                    applications.AddRange(roleApplications);
+                }
+            }
+
+            // Format the results
+            var applicationStatuses = applications.Select(app => new
+            {
+                RequestId = app.RequestId,
+                BookTitle = app.BookTitle,
+                Author = app.Author,
+                Publisher = app.Author,
+                ApplicantName = $"{app.Process?.Requester?.UserName} ",
+                Status = app.Process?.Status,
+                LastComment = app.Process?.WorkflowActions
+                    .OrderByDescending(wa => wa.ActionDate)
+                    .Select(wa => wa.Comment)
+                    .FirstOrDefault() ?? "No comments yet"
+                }).ToList();
+
+            return applicationStatuses;
+        }
     }
 }
