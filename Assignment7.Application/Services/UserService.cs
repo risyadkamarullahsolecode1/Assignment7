@@ -31,7 +31,7 @@ namespace Assignment7.Application.Services
             }
             note.Note = notes;
 
-            _userRepository.UpdateUser(note);
+            await _userRepository.UpdateUser(note);
             await _userRepository.SaveChangesAsync();
         }
     }

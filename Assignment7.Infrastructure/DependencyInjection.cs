@@ -51,6 +51,23 @@ namespace Assignment7.Infrastructure
                     IssuerSigningKey = new
                 SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SigningKey"])),
                 };
+                options.Events = new JwtBearerEvents // Handler untuk menyimpan token di cookie
+                {
+                    OnTokenValidated = context =>
+                    {
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        context.Response.StatusCode = 401;
+                        return Task.CompletedTask;
+                    },
+                    OnMessageReceived = context =>
+                    {
+                        context.Token = context.Request.Cookies["AuthToken"];
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             services.AddScoped<IBookRepository, BookRepository>();
@@ -65,6 +82,13 @@ namespace Assignment7.Infrastructure
 
             services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
             services.AddTransient<IEmailService, EmailService>();
+            services.AddScoped<IBookRequestRepository, BookRequestRepository>();
+            services.AddScoped<IWorkflowActionRepository, WorkflowActionRepository>();
+            services.AddScoped<IWorkflowSequenceRepository, WorkflowSequenceRepository>();
+            services.AddScoped<IProcessRepository, ProcessRepository>();
+            services.AddScoped<INextStepRuleRepository, NextStepRuleRepository>();
+
+            services.AddScoped<IBookRequestService, BookRequestService>();
             return services;
         }
     }

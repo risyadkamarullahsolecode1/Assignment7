@@ -15,7 +15,7 @@ namespace Assignment7.WebAPI.Controllers
         {
             _authService = authService;
         }
-        [Authorize(Roles = "Librarian, Library Manager")]
+        //[Authorize(Roles = "Librarian, Library Manager")]
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterUser model)
         {
@@ -46,14 +46,14 @@ namespace Assignment7.WebAPI.Controllers
 
             return Ok(result);
         }
-        [Authorize(Roles = "Library Manager")]
+        //[Authorize(Roles = "Library Manager")]
         [HttpPost("set-role")]
         public async Task<IActionResult> CreateRoleAsync(string rolename)
         {
             var result = await _authService.CreateRoleAsync(rolename);
             return Ok(result);
         }
-        [Authorize(Roles = "Library Manager")]
+       // [Authorize(Roles = "Library Manager")]
         [HttpPost("assign-role")]
         public async Task<IActionResult> AssignToRoleAsync(string userName, [FromBody] string rolename)
         {

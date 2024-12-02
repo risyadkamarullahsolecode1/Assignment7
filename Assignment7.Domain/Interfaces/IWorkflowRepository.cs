@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,6 +12,7 @@ namespace Assignment7.Domain.Interfaces
     {
         Task<Workflow> AddWorkflow(Workflow workflow);
         Task<WorkflowSequence> AddWorkflowSequence(WorkflowSequence workflowSequence);
+        Task<Workflow?> GetFirstOrDefaultAsync(Expression<Func<Workflow, bool>> expression);
         Task<BookRequest> SubmitLeaveRequestAsync(BookRequest request);
         Task<Process> AddProcessLeaveRequest(Process process);
         Task<WorkflowAction> AddAction(WorkflowAction workflowAction);
