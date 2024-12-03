@@ -110,7 +110,9 @@ namespace Assignment7.Application.Services
                     ExpiredOn = token.ValidTo,
                     Message = "User successfully login!",
                     Roles = userRoles.ToList(),
-                    Status = "Success"
+                    Status = "Success",
+                    User = user,
+                    Username = user.UserName,
                 };
             }
             return new ResponseModel { Status = "Error", Message = "Password Not valid!" };

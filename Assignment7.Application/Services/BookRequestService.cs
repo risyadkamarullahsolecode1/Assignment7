@@ -109,7 +109,8 @@ namespace Assignment7.Application.Services
                 Description = request.Description,
                 Author = request.Author,
                 RequestName = user.Id,
-                ProcessId = newProcess.ProcessId
+                ProcessId = newProcess.ProcessId,
+                AppUserId = user.Id,
             };
 
             await _bookRequestRepository.AddAsync(newBookRequest);
@@ -228,21 +229,21 @@ namespace Assignment7.Application.Services
 
             // send email to other actors
             // get other actors email
-            var workflowActions = await _workflowActionRepository.GetAllAsync();
-            var actorEmails = workflowActions.Where(a => a.ProcessId == process.ProcessId).Select(x => x.Actor.Email).Distinct().ToList();
+            //var workflowActions = await _workflowActionRepository.GetAllAsync();
+            //var actorEmails = workflowActions.Where(a => a.ProcessId == process.ProcessId).Select(x => x.Actor.Email).Distinct().ToList();
             // get requester email
-            var requesterEmail = process.Requester.Email;
+            //var requesterEmail = process.Requester.Email;
             // remove requesterEmail from actorEmails so requester only receive the email once
-            actorEmails.Remove(requesterEmail);
+            //actorEmails.Remove(requesterEmail);
 
-            if (user != null)
+            /**if (user != null)
             {
                 var emailSubject = "Book Request Submitted";
                 var emailBody = $"Dear {user.UserName},<br>Your book request for has been reviewed and the answer is {reviewRequest.Comment}.";
 
                 // Sending email using the email from AspNetUsers
                 await _emailService.SendEmailAsync(requesterEmail, emailSubject, emailBody);
-            }
+            }**/
 
             return new BaseResponseDto
             {
@@ -277,7 +278,7 @@ namespace Assignment7.Application.Services
                     var userApplications = await _bookRequestRepository.GetAllByUserAsync(r => r.AppUserId == user.Id);
                     applications.AddRange(userApplications);
                 }
-                else if (role == "Librarian" || role == "LibraryManager")
+                else if (role == "Librarian" || role == "Library Manager")
                 {
                     // Fetch book requests based on the librarian/manager's role in the workflow
                     var roleApplications = await _bookRequestRepository.GetAllToStatusAsync(role);
