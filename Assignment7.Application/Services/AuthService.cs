@@ -2,7 +2,9 @@
 using Assignment7.Application.Interfaces;
 using Assignment7.Domain.Entities;
 using Assignment7.Domain.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -202,6 +204,74 @@ namespace Assignment7.Application.Services
             }
             await _signInManager.SignOutAsync().ConfigureAwait(false);
             return new ResponseModel { Status = "Success", Message = "User successfully logout" };
+        }
+
+        public async Task<RefreshTokenResponseDto> RefreshAccessTokenAsync(HttpContext httpContext)
+        {
+            // Get the refresh token from cookies
+            var refreshToken = httpContext.Request.Cookies["RefreshToken"];
+
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                return new RefreshTokenResponseDto
+                {
+                    Status = "Error",
+                    Message = "Refresh token is missing from the request."
+                };
+            }
+
+            var user = await _userManager.Users.Where(u => u.RefreshToken == refreshToken).SingleOrDefaultAsync();
+
+            if (user == null)
+            {
+                return new RefreshTokenResponseDto
+                {
+                    Status = "Error",
+                    Message = $"User with the provided refresh token does not exist."
+                };
+            }
+
+            if (user.RefreshTokenExpiryTime < DateTime.UtcNow)
+            {
+                return new RefreshTokenResponseDto
+                {
+                    Status = "Error",
+                    Message = "Refresh token is not valid. Please log in again.",
+                };
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            var authClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SigningKey"]!));
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["JWT:Issuer"],
+                audience: _configuration["JWT:Audience"],
+                expires: DateTime.Now.AddDays(1),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+            );
+
+            return new RefreshTokenResponseDto
+            {
+                Status = "Success",
+                Message = "Access token refreshed successfully!",
+                AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                AccessTokenExpiryTime = token.ValidTo,
+                RefreshToken = user.RefreshToken,
+                RefreshTokenExpiryTime = user.RefreshTokenExpiryTime
+            };
         }
     }
 }

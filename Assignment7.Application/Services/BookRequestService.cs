@@ -211,8 +211,7 @@ namespace Assignment7.Application.Services
             var requests = await _bookRequestRepository.GetAllAsync();
             var reqData = requests.Where(r => r.ProcessId == process.ProcessId).Single();
 
-            // if approved, create new JobPost
-            if (reviewRequest.Action == "Approved")
+            /**if (reviewRequest.Action == "Approved")
             {
                 var newBookRequest = new BookRequest
                 {
@@ -225,7 +224,7 @@ namespace Assignment7.Application.Services
                 };
 
                 await _bookRequestRepository.AddAsync(newBookRequest);
-            }
+            }**/
 
             // send email to other actors
             // get other actors email
@@ -274,34 +273,32 @@ namespace Assignment7.Application.Services
             {
                 if (role == "Library User")
                 {
-                    // Fetch book requests created by the user
+                    // Fetch book requests created by the user (RequesterId)
                     var userApplications = await _bookRequestRepository.GetAllByUserAsync(r => r.AppUserId == user.Id);
                     applications.AddRange(userApplications);
                 }
                 else if (role == "Librarian" || role == "Library Manager")
                 {
-                    // Fetch book requests based on the librarian/manager's role in the workflow
+                    // Fetch book requests assigned to the role (based on the workflow step)
                     var roleApplications = await _bookRequestRepository.GetAllToStatusAsync(role);
                     applications.AddRange(roleApplications);
                 }
             }
 
-            // Format the results
-            var applicationStatuses = applications.Select(app => new
+            // Include requests that are in progress for Library Users or completed but involve the current user
+            var allApplications = applications.Select(app => new
             {
                 RequestId = app.RequestId,
                 BookTitle = app.BookTitle,
+                Process = app.ProcessId,
                 Author = app.Author,
-                Publisher = app.Author,
-                ApplicantName = $"{app.Process?.Requester?.UserName} ",
-                Status = app.Process?.Status,
-                LastComment = app.Process?.WorkflowActions
-                    .OrderByDescending(wa => wa.ActionDate)
-                    .Select(wa => wa.Comment)
-                    .FirstOrDefault() ?? "No comments yet"
-                }).ToList();
+                Publisher = app.Publisher,
+                ApplicantName = $"{app.Process?.Requester?.UserName}",
+                Status = app.Process?.Status,              
+                CurrentStep = app.Process?.CurrentStep.StepName,  // Shows current step in the workflow
+            }).ToList();
 
-            return applicationStatuses;
+            return allApplications;
         }
     }
 }

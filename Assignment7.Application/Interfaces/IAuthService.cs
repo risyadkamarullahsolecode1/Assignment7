@@ -1,4 +1,5 @@
 ﻿using Assignment7.Application.Dtos.Account;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,5 +20,6 @@ namespace Assignment7.Application.Interfaces
         ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
         Task<ResponseModel> DeleteToRoleAsync(string userName, string rolename);
         Task<ResponseModel> LogoutAsync(string userName);
+        Task<RefreshTokenResponseDto> RefreshAccessTokenAsync(HttpContext httpContext);
     }
 }

@@ -17,7 +17,7 @@ namespace Assignment7.WebAPI.Controllers
             _bookRequestService = bookRequestService;
             _environment = environment;
         }
-        [Authorize]
+        [Authorize(Roles = "Library User")]
         [HttpPost("submit")]
         public async Task<IActionResult> SubmitBookRequest(BookRequestDto bookRequestDto)
         {
