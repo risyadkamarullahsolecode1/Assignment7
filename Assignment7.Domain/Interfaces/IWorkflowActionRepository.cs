@@ -20,5 +20,6 @@ namespace Assignment7.Domain.Interfaces
 
         Task DeleteAsync(WorkflowAction entity);
         Task<WorkflowAction?> GetFirstOrDefaultAsync(Expression<Func<WorkflowAction, bool>> expression);
+        Task<List<WorkflowAction>> GetByProcessIdAsync(int processId);
     }
 }

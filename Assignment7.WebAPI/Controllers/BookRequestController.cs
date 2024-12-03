@@ -89,5 +89,11 @@ namespace Assignment7.WebAPI.Controllers
             }
         }
 
+        [HttpGet("{processId}")]
+        public async Task<IActionResult> GetProcess(int processId)
+        {
+            var res = await _bookRequestService.GetProcessAsync(processId);
+            return Ok(res);
+        }
     }
 }

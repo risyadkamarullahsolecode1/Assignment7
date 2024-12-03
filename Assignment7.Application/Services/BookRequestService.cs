@@ -290,7 +290,7 @@ namespace Assignment7.Application.Services
             {
                 RequestId = app.RequestId,
                 BookTitle = app.BookTitle,
-                Process = app.ProcessId,
+                ProcessId = app.ProcessId,
                 Author = app.Author,
                 Publisher = app.Publisher,
                 ApplicantName = $"{app.Process?.Requester?.UserName}",
@@ -299,6 +299,38 @@ namespace Assignment7.Application.Services
             }).ToList();
 
             return allApplications;
+        }
+
+        public async Task<ProcessDetailDto> GetProcessAsync(int processId)
+        {
+            var process = await _processRepository.GetByIdAsync(processId);
+            if (process == null)
+            {
+                return null; // Handle the case where process is not found
+            }
+
+            // Fetch related BookRequest and WorkflowAction
+            var bookRequest = await _bookRequestRepository.GetAsync(processId);
+            var workflowActions = await _workflowActionRepository.GetByProcessIdAsync(process.ProcessId);
+
+            // Construct the response DTO to include BookRequest and WorkflowActions
+            var processDetailDto = new ProcessDetailDto
+            {
+                ProcessId = process.ProcessId,
+                BookTitle = bookRequest.BookTitle,
+                Author = bookRequest.Author,
+                Publisher = bookRequest.Publisher,
+                Status = process.Status,
+                WorkflowActions = workflowActions.Select(action => new WorkflowActionDto
+                {
+                    ActionDate = action.ActionDate,
+                    ActionBy = action.ActorId,
+                    Action = action.Action,
+                    Comments = action.Comment
+                }).ToList()
+            };
+
+            return processDetailDto; // Return the DTO instead of the entity
         }
     }
 }

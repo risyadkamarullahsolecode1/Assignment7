@@ -44,6 +44,14 @@ namespace Assignment7.Infrastructure.Data.Repository
 
             return workflowAction;
         }
+        public async Task<List<WorkflowAction>> GetByProcessIdAsync(int processId)
+        {
+            var workflowActions = await _context.WorkflowActions
+                                                .Where(w => w.ProcessId == processId)
+                                                .ToListAsync();
+
+            return workflowActions;
+        }
 
         public async Task<WorkflowAction?> GetFirstOrDefaultAsync(Expression<Func<WorkflowAction, bool>> expression)
         {

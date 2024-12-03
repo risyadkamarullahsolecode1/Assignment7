@@ -12,5 +12,6 @@ namespace Assignment7.Application.Interfaces
         Task<BaseResponseDto> SubmitJobPostRequest(BookRequestDto request);
         Task<BaseResponseDto> ReviewJobPostRequest(ReviewRequestDto reviewRequest);
         Task<IEnumerable<object>> GetAllBookRequestStatuses();
+        Task<ProcessDetailDto> GetProcessAsync(int processId);
     }
 }
